@@ -14,6 +14,9 @@
     <RootNamespace>kamer</RootNamespace>
     <InterpreterId>{40cd0e4b-6a51-4e4c-8b9e-bf2aef4199fc}</InterpreterId>
     <InterpreterVersion>3.5</InterpreterVersion>
+    <LaunchProvider>Standard Python launcher</LaunchProvider>
+    <CommandLineArguments>-i "D:\Data Files\TG\Kamerdebatten\Data\HTK" -o "D:\Data Files\TG\Kamerdebatten\Data\HTK" -a "D:\Data Files\TG\Kamerdebatten\Data\intensifiers.json"</CommandLineArguments>
+    <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>
@@ -24,7 +27,16 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="advhandle.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="ntk.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="kamer.py" />
+    <Compile Include="util.py">
+      <SubType>Code</SubType>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <Interpreter Include="..\..\..\..\..\env\collbank\">

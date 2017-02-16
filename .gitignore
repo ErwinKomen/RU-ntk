@@ -250,3 +250,6 @@ paket-files/
 # JetBrains Rider
 .idea/
 *.sln.iml
+/kamer/__pycache__/util.cpython-35.pyc
+/kamer/__pycache__/ntk.cpython-35.pyc
+/kamer/__pycache__/advhandle.cpython-35.pyc
