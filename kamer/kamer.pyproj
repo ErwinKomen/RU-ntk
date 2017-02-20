@@ -15,7 +15,7 @@
     <InterpreterId>{40cd0e4b-6a51-4e4c-8b9e-bf2aef4199fc}</InterpreterId>
     <InterpreterVersion>3.5</InterpreterVersion>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
-    <CommandLineArguments>-i "D:\Data Files\TG\Kamerdebatten\Data\HTK" -o "D:\Data Files\TG\Kamerdebatten\Data\HTK" -a "D:\Data Files\TG\Kamerdebatten\Data\intensifiers.json"</CommandLineArguments>
+    <CommandLineArguments>-m full -s line -i "D:\Data Files\TG\Kamerdebatten\Data\HTK" -o "D:\Data Files\TG\Kamerdebatten\Data\results.csv" -a "D:\Data Files\TG\Kamerdebatten\Data\intensifiers.json"</CommandLineArguments>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
