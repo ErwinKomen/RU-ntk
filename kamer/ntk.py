@@ -4,6 +4,7 @@
 import os.path
 import xml.etree.ElementTree as ET
 import re
+from sentiana import SentiAna
 
 # ----------------------------------------------------------------------------------
 # Name :    ntk
@@ -16,15 +17,22 @@ class ntk:
 
     adv = None
     method = ""
+    lines = ""
+    snt = None
     lUtt = []
 
     # ======================= CLASS INITIALIZER ========================================
-    def __init__(self, oErr):
+    def __init__(self, oErr, sMethod, sLines):
         # Set the error handler
         self.errHandle = oErr
         self.rePunct = re.compile(r"[\.\,\?\!\'\"\`\;\:\-]")
         self.reLineEnd = re.compile(r"[\.\?\!]")
         self.reNalpha = re.compile(r"[^\w]")
+        self.method = sMethod
+        self.lines = sLines
+        # Create a sentiment object
+        self.snt = SentiAna(oErr)
+
 
     # ----------------------------------------------------------------------------------
     # Name :    load
@@ -84,7 +92,7 @@ class ntk:
     # History:
     # 16/feb/2017    ERK Created
     # ----------------------------------------------------------------------------------
-    def getUtteranceList(self, doc, fName, oAdv, sMethod):
+    def getUtteranceList(self, doc, fName, oAdv):
         """Retrieve a list of utterance objects from the doc tree"""
         
         self.lUtt = []       # List of utterances
@@ -93,7 +101,6 @@ class ntk:
         try:
             # Make sure the adverb object is tied
             self.adv = oAdv
-            self.method = sMethod
 
             # Get the root name, which determines how we will process
             sRootType = doc.tag.lower()
@@ -203,38 +210,57 @@ class ntk:
                 # Walk all lines
                 for sText in lLine:
                     # Trim it
-                    sText = sText.strip()
-                    # Tokenize the text into words on the basis of spaces, stripping off metadata
-                    wList = re.sub(self.reNalpha, " ", sText).split()
-                    # Get a new count object -- this is method-dependant
-                    oCount = self.adv.getTypeCountObject(self.method)
-                    # Walk the list of words
-                    for wrd in wList:
-                        # Make sure the word is lower-case
-                        wrd = wrd.lower()
-                        # Get a match for this word 
-                        sType = self.adv.getType(wrd)
-                        # Do we have a match?
-                        if sType != "":
-                            # Counting is method-dependant
-                            if self.method == "compact":
-                                oCount[sType] += 1
-                            elif self.method == "full":
-                                oCount[wrd] += 1
+                    sText = sText.strip().strip("\n").strip("\r")
 
-                    # Do we have at least one match?
-                    if self.anyCountNonZero(oCount):
-                        # Prepare one utterance object
-                        oUtt = {}
-                        oUtt['jaar_van'] = jaar_vanaf
-                        oUtt['jaar_tot'] = jaar_tot
-                        oUtt['aanspr'] = aanspr
-                        oUtt['partij'] = partij
-                        oUtt['s'] = sText
-                        # Copy the counts
-                        oUtt['count'] = oCount
-                        # Add this object to the list
-                        self.lUtt.append(oUtt)
+                    # double check if it is empty
+                    if sText != "":
+                    
+                        # ------------------- DEBUG -----------------------------
+                        #if "heel" in sText:
+                        #    iStop = 1
+                        # -------------------------------------------------------
+
+                        # Tokenize the text into words on the basis of spaces, stripping off metadata
+                        wList = re.sub(self.reNalpha, " ", sText).split()
+                        # Get a new count object -- this is method-dependant
+                        oCount = self.adv.getTypeCountObject(self.method)
+                        # Walk the list of words
+                        for wrd in wList:
+                            # Make sure the word is lower-case
+                            wrd = wrd.lower()
+                            # Get a match for this word 
+                            sType = self.adv.getType(wrd)
+                            # Do we have a match?
+                            if sType != "":
+                                # Counting is method-dependant
+                                if self.method == "compact":
+                                    oCount[sType] += 1
+                                elif self.method == "full":
+                                    oCount[wrd] += 1
+
+                        # Perform POS-tagging
+
+                        # Either: (a) at least one match or (b) 'lines' option is 'all'
+                        if self.lines == "all" or self.anyCountNonZero(oCount):
+                            # Prepare one utterance object
+                            oUtt = {}
+                            oUtt['jaar_van'] = jaar_vanaf
+                            oUtt['jaar_tot'] = jaar_tot
+                            oUtt['aanspr'] = aanspr
+                            oUtt['partij'] = partij
+                            oUtt['s'] = sText
+                            # Add 'Sentimentanalyse' scores
+                            tPolSubj = self.snt.get_analysis(sText)
+                            oUtt['polar'] = tPolSubj[0]     # first element of the tuple
+                            oUtt['subj'] = tPolSubj[1]      # second element of the tuple
+
+                            # TODO: implement 'intens'
+                            # oUtt['intens'] = 0            # TODO: 
+
+                            # Copy the counts
+                            oUtt['count'] = oCount
+                            # Add this object to the list
+                            self.lUtt.append(oUtt)
 
             # Indicate all went well
             return True

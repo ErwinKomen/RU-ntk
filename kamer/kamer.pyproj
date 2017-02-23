@@ -6,8 +6,7 @@
     <ProjectGuid>d1e36707-63c3-4f88-b244-f17bcf2152e6</ProjectGuid>
     <ProjectHome>.</ProjectHome>
     <StartupFile>kamer.py</StartupFile>
-    <SearchPath>
-    </SearchPath>
+    <SearchPath>..\pattern\</SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
     <Name>kamer</Name>
@@ -34,6 +33,9 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="kamer.py" />
+    <Compile Include="sentiana.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="util.py">
       <SubType>Code</SubType>
     </Compile>
@@ -50,6 +52,13 @@
       <PathEnvironmentVariable>PYTHONPATH</PathEnvironmentVariable>
       <Architecture>X86</Architecture>
     </Interpreter>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\pattern\pattern.pyproj">
+      <Name>pattern</Name>
+      <Project>{e2ec4ec7-b34b-483e-b029-2d4927f321b8}</Project>
+      <Private>True</Private>
+    </ProjectReference>
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>

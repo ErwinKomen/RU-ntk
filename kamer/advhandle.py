@@ -25,12 +25,15 @@ class AdvHandle:
                     json_data.close()
                 # Look through all word-lists
                 lWords = oData['words']
+                iCol = 0
                 for oThis in lWords:
                     sType = oThis['type']
                     for sWord in oThis['form']:
                         oWord = {"wtype": sType,
-                                 "wform": sWord}
+                                 "wform": sWord,
+                                 "col": iCol}
                         self.loc_words.append(oWord)
+                        iCol += 1
                     # Check if this type is already in our list
                     if not sType in self.loc_types:
                         self.loc_types.append(sType)
@@ -42,6 +45,23 @@ class AdvHandle:
             # act upon error
             self.errHandle.DoError("advHandle/load")
             return False
+
+    def getCol(self, sWrd):
+        """ get the column where this word belongs"""
+        sWrd = sWrd.lower()
+        for w in self.loc_words:
+            if w['wform'] == sWrd:
+                return w['col']
+        # Otherwise return empty
+        return 0
+
+    def getWord(self, iCol):
+        """ get the word belonging to this column"""
+        for w in self.loc_words:
+            if w['col'] == iCol:
+                return w['wform']
+        # Otherwise return empty
+        return ""
 
     def getType(self, sWrd):
         """get the adverb type for this word"""

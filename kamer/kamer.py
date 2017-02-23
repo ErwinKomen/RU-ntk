@@ -9,7 +9,7 @@ import util, advhandle, ntk, csv, io
 
 # ============================= LOCAL VARIABLES ====================================
 errHandle = util.ErrHandle()
-outputColumns = ['Jaar_start', 'Jaar_eind', 'Partij', 'Aanspreek', 'Sentence']
+outputColumns = ['Jaar_start', 'Jaar_eind', 'Partij', 'Aanspreek', 'Sentence', 'Subjectivity', 'Polarity']
 
 # ----------------------------------------------------------------------------------
 # Name :    main
@@ -23,17 +23,18 @@ def main(prgName, argv) :
   flAdverb = ''       # intensifier adverb JSON file
   sMethod = 'compact' # Output method: "compact", "full"
   sScope = 'line'     # Scope of the input: "line", "sentence"
+  sLines = 'all'      # Output all the lines, or only the 'hit' ones?
 
   try:
     # Adapt the program name to exclude the directory
     index = prgName.rfind("\\")
     if (index > 0) :
       prgName = prgName[index+1:]
-    sSyntax = prgName + ' [-m <method>] [-s <scope>] -a <adverb file> -i <input directory> -o <output directory>'
+    sSyntax = prgName + ' [-m <method>] [-l <lines>] [-s <scope>] -a <adverb file> -i <input directory> -o <output directory>'
     # get all the arguments
     try:
       # Get arguments and options
-      opts, args = getopt.getopt(argv, "hs:m:a:i:o:", ["-method=","-adverbs=","-inputdir=","-outputdir="])
+      opts, args = getopt.getopt(argv, "hs:m:l:a:i:o:", ["-scope=","-method=","-lines=","-adverbs=","-inputdir=","-outputdir="])
     except getopt.GetoptError:
       print(sSyntax)
       sys.exit(2)
@@ -46,6 +47,8 @@ def main(prgName, argv) :
         flAdverb = arg
       elif opt in ("-m", "--method"):
         sMethod = arg
+      elif opt in ("-l", "--lines"):
+        sLines = arg
       elif opt in ("-s", "--scope"):
         sScope = arg
       elif opt in ("-i", "--ifile"):
@@ -61,11 +64,13 @@ def main(prgName, argv) :
     errHandle.Status('Adverb definition file is "' + flAdverb + '"')
     errHandle.Status('Reading scope is "' + sScope + '"')
     errHandle.Status('Output method is "' + sMethod + '"')
+    errHandle.Status('Output lines is "' + sLines + '"')
     # Call the function that does the job
     oArgs = {'input': flInput,
              'output': flOutput,
              'adverb': flAdverb,
              'scope': sScope,
+             'lines': sLines,
              'method': sMethod}
     if (intensifiers(oArgs)) :
       errHandle.Status("Ready")
@@ -89,6 +94,7 @@ def intensifiers(oArgs):
     flOutput = ""   # 
     flAdverb = ""   # 
     sMethod = ""    # 
+    sLines = ""     # Lines: 'all', 'hit'
     sScope = ""
     arInput = []    # Array of input files
     arOutput = []   # Array of output files
@@ -100,6 +106,7 @@ def intensifiers(oArgs):
         if "output" in oArgs: flOutput = oArgs["output"]
         if "adverb" in oArgs: flAdverb = oArgs["adverb"]
         if "method" in oArgs: sMethod = oArgs["method"]
+        if "lines" in oArgs: sLines = oArgs["lines"]
         if "scope" in oArgs: sScope = oArgs["scope"]
         # Check input and output directories
         if not os.path.isdir(flInput):
@@ -126,7 +133,7 @@ def intensifiers(oArgs):
         oAdv.Load(flAdverb)
 
         # Make a file handler
-        oNtk = ntk.ntk(errHandle)
+        oNtk = ntk.ntk(errHandle, sMethod, sLines)
 
         # start a CSV writer
         fl_out = io.open(flOutput, "w", encoding='utf-8', newline ='')
@@ -143,7 +150,7 @@ def intensifiers(oArgs):
             # Transform this XML file into an object
             tree = oNtk.load(arInput[index])
             # Evaluate the intensifiers in this file
-            lUtt = oNtk.getUtteranceList(tree, arInput[index], oAdv, sMethod)
+            lUtt = oNtk.getUtteranceList(tree, arInput[index], oAdv)
             # Add the intensifiers to the CSV we are creating
             for utt in lUtt:
                 content = []
@@ -153,10 +160,14 @@ def intensifiers(oArgs):
                 content.append(utt['partij'])
                 content.append(utt['aanspr'])
                 content.append(utt['s'])
+                # Sentiment: subjectivity and polarity
+                content.append(utt['subj'])
+                content.append(utt['polar'])
                 # Append the count lines
                 oCount = utt['count']
-                for cnt in oCount:
-                    content.append(oCount[cnt])
+                for idx, item in enumerate(oCount):
+                    sWrd = oAdv.getWord(idx)
+                    content.append(oCount[sWrd])
                 # Add line to CSV
                 writer.writerow(content)
 
